@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from transformers import AutoModelForCausalLM, AutoTokenizer
+from torch.nn import Module, Linear 
 
 load_dotenv()
 hf_token = os.getenv("HF_TOKEN")
@@ -25,3 +26,11 @@ if __name__ == "__main__":
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
     outputs = model.generate(**inputs, max_new_tokens=50)
     print(tokenizer.decode(outputs[0], skip_special_tokens=True).encode('ascii', 'ignore').decode())
+    print("Model architecture summary:\n")
+    for name, module in model.named_modules():
+        if isinstance(module, (Linear, Module)):  
+            try:
+                params = sum(p.numel() for p in module.parameters())
+                print(f"{name:<80} | {str(type(module)).split('.')[-1][:-2]:<20} | Params: {params}")
+            except Exception as e:
+                print(f"{name:<80} | {str(type(module)).split('.')[-1][:-2]:<20} | ERROR: {e}")
