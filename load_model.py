@@ -16,6 +16,7 @@ model = AutoModelForCausalLM.from_pretrained(
     model_id,
     device_map="auto",
     torch_dtype="auto",
+    cache_dir="./cached_model/",
     token=hf_token
 )
 
@@ -34,3 +35,4 @@ if __name__ == "__main__":
                 print(f"{name:<80} | {str(type(module)).split('.')[-1][:-2]:<20} | Params: {params}")
             except Exception as e:
                 print(f"{name:<80} | {str(type(module)).split('.')[-1][:-2]:<20} | ERROR: {e}")
+    print("Model ready for compression")
