@@ -1,12 +1,13 @@
 import os
 from dotenv import load_dotenv
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from torch.nn import Module, Linear 
+from torch.nn import Module, Linear
 
 load_dotenv()
 hf_token = os.getenv("HF_TOKEN")
 
 model_id = "katuni4ka/tiny-random-qwen1.5-moe"
+cache_dir = "./cached_model/"
 
 print("Loading tokenizer...")
 tokenizer = AutoTokenizer.from_pretrained(model_id, token=hf_token)
@@ -16,11 +17,16 @@ model = AutoModelForCausalLM.from_pretrained(
     model_id,
     device_map="auto",
     torch_dtype="auto",
-    cache_dir="./cached_model/",
+    cache_dir=cache_dir,
     token=hf_token
 )
 
-print("Model and tokenizer loaded successfully.")
+print(f"Saving model and tokenizer to {cache_dir} ...")
+os.makedirs(cache_dir, exist_ok=True)
+tokenizer.save_pretrained(cache_dir)
+model.save_pretrained(cache_dir)
+
+print("Model and tokenizer saved successfully.")
 
 if __name__ == "__main__":
     prompt = "Q: What is a mixture of experts model?\nA:"
@@ -35,4 +41,4 @@ if __name__ == "__main__":
                 print(f"{name:<80} | {str(type(module)).split('.')[-1][:-2]:<20} | Params: {params}")
             except Exception as e:
                 print(f"{name:<80} | {str(type(module)).split('.')[-1][:-2]:<20} | ERROR: {e}")
-    print("Model ready for compression")
+    print("Model ready for compression.")

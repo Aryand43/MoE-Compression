@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import os
-from transformers import AutoModelForCausalLM
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -9,19 +9,22 @@ hf_token = os.getenv("HF_TOKEN")
 
 # Load directly from Hugging Face with caching
 model_id = "katuni4ka/tiny-random-qwen1.5-moe"
+cache_dir = "./cached_model/"
 model = AutoModelForCausalLM.from_pretrained(
     model_id,
-    cache_dir="./cached_model/",
+    cache_dir=cache_dir,
     device_map="cpu",
     torch_dtype=torch.float32,
     token=hf_token
 )
-print("Model loaded. Starting SVD compression...\n")
+tokenizer = AutoTokenizer.from_pretrained(model_id, token=hf_token)
+
+print("Model and tokenizer loaded. Starting SVD compression...\n")
 
 # SVD Compression for a Linear layer
 def svd_compress_linear_layer(layer: nn.Linear, rank: int = 32):
     with torch.no_grad():
-        W = layer.weight.data  # [out_features, in_features]
+        W = layer.weight.data
         U, S, Vh = torch.linalg.svd(W, full_matrices=False)
 
         U_k = U[:, :rank]
@@ -42,9 +45,8 @@ def compress_model(model, rank=32):
     for name, module in model.named_modules():
         for attr_name in dir(module):
             if not hasattr(module, attr_name):
-                continue  # skip if attribute doesn't exist
+                continue
             attr = getattr(module, attr_name)
-
             if isinstance(attr, nn.Linear):
                 if attr.weight is None:
                     print(f"Skipped {name}.{attr_name}: weight is None")
@@ -60,8 +62,9 @@ def compress_model(model, rank=32):
 # Run compression
 model = compress_model(model, rank=32)
 
-# Save compressed model
+# Save compressed model and tokenizer
 save_path = "./compressed_model/"
 os.makedirs(save_path, exist_ok=True)
 model.save_pretrained(save_path)
-print("\nCompression complete. Saved to ./compressed_model/")
+tokenizer.save_pretrained(save_path)
+print("\nCompression complete. Model and tokenizer saved to ./compressed_model/")
