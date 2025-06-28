@@ -2,6 +2,7 @@ import os
 import time
 import torch
 import csv
+import re
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from torch.nn.functional import cosine_similarity
 
@@ -10,6 +11,12 @@ def load_model_and_tokenizer(path):
     model = AutoModelForCausalLM.from_pretrained(path, torch_dtype=torch.float32).eval()
     return tokenizer, model
 
+def clean_output(output_ids, tokenizer):
+    decoded = tokenizer.decode(output_ids, skip_special_tokens=True)
+    decoded = decoded.strip()
+    decoded = re.sub(r'\s+', ' ', decoded)
+    decoded = re.sub(r'[^\x00-\x7F]+', '', decoded)  # Optional: strip non-ASCII
+    return decoded
 
 def get_inference_metrics(model, tokenizer, prompt):
     inputs = tokenizer(prompt, return_tensors="pt")
@@ -19,7 +26,7 @@ def get_inference_metrics(model, tokenizer, prompt):
     end_time = time.time()
 
     generation_time = end_time - start_time
-    decoded_output = tokenizer.decode(output[0], skip_special_tokens=True)
+    decoded_output = clean_output(output[0], tokenizer)
 
     total_params = sum(p.numel() for p in model.parameters())
 
@@ -32,7 +39,6 @@ def get_inference_metrics(model, tokenizer, prompt):
         "params": total_params,
         "logits": logits
     }
-
 
 def compare_models(original_path, compressed_path, prompt, output_csv="qwen_comparison_metrics.csv"):
     tokenizer_orig, model_orig = load_model_and_tokenizer(original_path)
@@ -71,7 +77,6 @@ def compare_models(original_path, compressed_path, prompt, output_csv="qwen_comp
         ])
 
     print(f"Comparison metrics saved to {output_csv}")
-
 
 if __name__ == "__main__":
     ORIGINAL_MODEL_PATH = "./cached_model"
