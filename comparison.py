@@ -40,6 +40,14 @@ def get_inference_metrics(model, tokenizer, prompt):
         "logits": logits
     }
 
+def get_model_size(path):
+    total_size = 0
+    for dirpath, _, filenames in os.walk(path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            total_size += os.path.getsize(fp)
+    return total_size / (1024 * 1024)  # in MB
+
 def compare_models(original_path, compressed_path, prompt, output_csv="qwen_comparison_metrics.csv"):
     tokenizer_orig, model_orig = load_model_and_tokenizer(original_path)
     tokenizer_comp, model_comp = load_model_and_tokenizer(compressed_path)
@@ -56,13 +64,17 @@ def compare_models(original_path, compressed_path, prompt, output_csv="qwen_comp
         dim=0
     ).item()
 
+    orig_size = get_model_size(original_path)
+    comp_size = get_model_size(compressed_path)
+
+    # Write to CSV
     with open(output_csv, mode='w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow([
             "Prompt", "Orig Output", "Comp Output", 
             "Orig Time (s)", "Comp Time (s)",
             "Orig Params", "Comp Params",
-            "Cosine Similarity"
+            "Cosine Similarity", "Orig Size (MB)", "Comp Size (MB)"
         ])
         writer.writerow([
             prompt,
@@ -72,14 +84,16 @@ def compare_models(original_path, compressed_path, prompt, output_csv="qwen_comp
             comp_metrics["time"],
             orig_metrics["params"],
             comp_metrics["params"],
-            cosine_sim
+            cosine_sim,
+            orig_size,
+            comp_size
         ])
 
     print(f"Comparison metrics saved to {output_csv}")
 
 if __name__ == "__main__":
     ORIGINAL_MODEL_PATH = "./cached_model"
-    
+
     # COMPRESSED_MODEL_PATH = "./compressed_model"  # <-- SVD version, now commented
     COMPRESSED_MODEL_PATH = "./quantized_model"      # <-- using quantized model instead
 
