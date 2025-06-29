@@ -28,7 +28,7 @@ This project performs post-training dynamic quantization on a Mixture-of-Experts
 | Size (MB)              | ~90 MB       | ~52 MB         |
 | Parameters             | 9.88M         | 9.88M          |
 | Inference Time (s)     | ~1.67         | ~1.16         |
-| Cosine Similarity      | ~0.71         | —              |
+| Cosine Similarity      | N/A           | ~0.71          |
 
 ## Notes
 - The quantized model retains the original architecture and parameters, but uses reduced-precision arithmetic for faster and smaller inference.
