@@ -47,7 +47,7 @@ def compare_models(original_path, compressed_path, prompt, output_csv="qwen_comp
     print("Running inference on original model...")
     orig_metrics = get_inference_metrics(model_orig, tokenizer_orig, prompt)
 
-    print("Running inference on compressed model...")
+    print("Running inference on quantized model...")
     comp_metrics = get_inference_metrics(model_comp, tokenizer_comp, prompt)
 
     cosine_sim = cosine_similarity(
@@ -56,7 +56,6 @@ def compare_models(original_path, compressed_path, prompt, output_csv="qwen_comp
         dim=0
     ).item()
 
-    # Write to CSV
     with open(output_csv, mode='w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow([
@@ -80,7 +79,10 @@ def compare_models(original_path, compressed_path, prompt, output_csv="qwen_comp
 
 if __name__ == "__main__":
     ORIGINAL_MODEL_PATH = "./cached_model"
-    COMPRESSED_MODEL_PATH = "./compressed_model"
+    
+    # COMPRESSED_MODEL_PATH = "./compressed_model"  # <-- SVD version, now commented
+    COMPRESSED_MODEL_PATH = "./quantized_model"      # <-- using quantized model instead
+
     PROMPT = "The future of AI lies mainly in the field of.."
 
     compare_models(ORIGINAL_MODEL_PATH, COMPRESSED_MODEL_PATH, PROMPT)

@@ -22,7 +22,7 @@ tokenizer = AutoTokenizer.from_pretrained(model_id, token=hf_token)
 print("Model and tokenizer loaded. Starting SVD compression...\n")
 
 # SVD Compression for a Linear layer
-def svd_compress_linear_layer(layer: nn.Linear, rank: int = 32):
+def svd_compress_linear_layer(layer: nn.Linear, rank: int = 50):
     with torch.no_grad():
         W = layer.weight.data
         U, S, Vh = torch.linalg.svd(W, full_matrices=False)
@@ -41,7 +41,7 @@ def svd_compress_linear_layer(layer: nn.Linear, rank: int = 32):
         return nn.Sequential(first, second)
 
 # Replace Linear layers with compressed versions
-def compress_model(model, rank=32):
+def compress_model(model, rank=50):
     for name, module in model.named_modules():
         for attr_name in dir(module):
             if not hasattr(module, attr_name):
@@ -60,7 +60,7 @@ def compress_model(model, rank=32):
     return model
 
 # Run compression
-model = compress_model(model, rank=32)
+model = compress_model(model, rank=50)
 
 # Save compressed model and tokenizer
 save_path = "./compressed_model/"
