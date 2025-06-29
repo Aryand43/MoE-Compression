@@ -25,7 +25,7 @@ This project performs post-training dynamic quantization on a Mixture-of-Experts
 ## Key Results (Sample)
 | Metric                 | Original      | Quantized     |
 |------------------------|---------------|----------------|
-| Size (MB)              | ~940 MB       | ~52 MB         |
+| Size (MB)              | ~90 MB       | ~52 MB         |
 | Parameters             | 9.88M         | 9.88M          |
 | Inference Time (s)     | ~2.60         | ~2.67          |
 | Cosine Similarity      | ~0.71         | —              |
